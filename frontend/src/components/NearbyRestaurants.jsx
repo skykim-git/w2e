@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Map, GoogleApiWrapper } from 'google-maps-react';
 import './style.css';
-// import './mag.css';
+import './mag.css';
 import nlp from 'compromise'; 
 
 class NearbyRestaurants extends Component {
@@ -18,13 +18,131 @@ class NearbyRestaurants extends Component {
 
   // Lifecycle method called when the component is first added to the DOM
   componentDidMount() {
-    // Get user's current location
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(this.searchNearbyRestaurants);
     } else {
       console.log("Geolocation is not supported by this browser.");
     }
+
+    // Wait until the canvas elements are rendered
+    this.initializeFisheyeEffect();
   }
+
+  initializeFisheyeEffect() {
+    const bg = document.getElementById('bg');
+    const c = document.getElementById('c');
+
+    if (!bg || !c) {
+      setTimeout(this.initializeFisheyeEffect.bind(this), 100);
+      return;
+    }
+
+    const ctx = c.getContext('2d');
+    const src = "https://lumiere-a.akamaihd.net/v1/images/r_thorragnarok_header_nowplaying_47d36193.jpeg?region=0,0,2048,680";
+
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.onload = function() {
+      const w = this.width,
+        h = this.height;
+
+      bg.width = w;
+      bg.height = h;
+      bg.style.marginLeft = -w / 2 + 'px';
+      bg.style.marginTop = -h / 2 + 'px';
+
+      bg.getContext('2d').drawImage(img, 0, 0, w, h);
+
+      window.addEventListener("mousemove", distortion);
+      window.addEventListener("touchmove", distortion);
+    };
+    img.src = src;
+
+    function distortion(e) {
+      const cx = (e.touches ? e.touches[0].clientX : e.clientX),
+        cy = (e.touches ? e.touches[0].clientY : e.clientY),
+        size = 200,
+        zoom = 1;
+
+      c.width = size;
+      c.height = size;
+      c.style.left = cx - size / 2 + 'px';
+      c.style.top = cy - size / 2 + 'px';
+
+      ctx.fillRect(0, 0, size, size);
+      ctx.drawImage(
+        bg,
+        cx - bg.offsetLeft - 0.5 * size / zoom,
+        cy - bg.offsetTop - 0.5 * size / zoom,
+        size / zoom,
+        size / zoom,
+        0,
+        0,
+        size,
+        size
+      );
+
+      const imgData = ctx.getImageData(0, 0, size, size);
+      const pixels = imgData.data;
+      const pixelsCopy = [];
+      let index = 0;
+
+      for (let i = 0; i <= pixels.length; i += 4) {
+        pixelsCopy[index] = [pixels[i], pixels[i + 1], pixels[i + 2], pixels[i + 3]];
+        index++;
+      }
+
+      const result = fisheye(pixelsCopy, size, size);
+
+      for (let i = 0; i < result.length; i++) {
+        index = 4 * i;
+        if (result[i] !== undefined) {
+          pixels[index + 0] = result[i][0];
+          pixels[index + 1] = result[i][1];
+          pixels[index + 2] = result[i][2];
+          pixels[index + 3] = result[i][3];
+        }
+      }
+
+      ctx.putImageData(imgData, 0, 0);
+    }
+
+    function fisheye(srcpixels, w, h) {
+      const dstpixels = srcpixels.slice();
+
+      for (let y = 0; y < h; y++) {
+        const ny = ((2 * y) / h) - 1;
+        const ny2 = ny * ny;
+
+        for (let x = 0; x < w; x++) {
+          const nx = ((2 * x) / w) - 1;
+          const nx2 = nx * nx;
+          const r = Math.sqrt(nx2 + ny2);
+
+          if (0.0 <= r && r <= 1.0) {
+            let nr = Math.sqrt(1.0 - r * r);
+            nr = (r + (1.0 - nr)) / 2.0;
+
+            if (nr <= 1.0) {
+              const theta = Math.atan2(ny, nx);
+              const nxn = nr * Math.cos(theta);
+              const nyn = nr * Math.sin(theta);
+              const x2 = parseInt(((nxn + 1) * w) / 2);
+              const y2 = parseInt(((nyn + 1) * h) / 2);
+              const srcpos = parseInt(y2 * w + x2);
+              if (srcpos >= 0 && srcpos < w * h) {
+                dstpixels[parseInt(y * w + x)] = srcpixels[srcpos];
+              }
+            }
+          }
+        }
+      }
+      return dstpixels;
+    }
+  }
+
+
+  
   
   // Main function for best restaurant search
   searchNearbyRestaurants = (position) => {
@@ -246,8 +364,8 @@ class NearbyRestaurants extends Component {
   renderFirstPage = () => {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-        <h1 className={this.state.isSpinning ? "custom-heading, spinning-text" : "custom-heading"} style={{ marginTop: '50px', fontSize: '200px' }}>W2E</h1>
-        <button onClick={this.handleButtonClick} style={{ marginTop: '20px', padding: '10px', backgroundColor: '#ff5722', color: 'black', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Start</button>
+        <h1 className={`${this.state.isSpinning ? 'spinning-text' : ''} custom-heading`} style={{ marginTop: '50px', fontSize: '200px' }}>W2E</h1>
+        <button className="custom-body" onClick={this.handleButtonClick} style={{ marginTop: '20px', padding: '10px', backgroundColor: '#ff5722', color: 'black', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Start</button>
       </div>
     );
   };
@@ -262,7 +380,7 @@ class NearbyRestaurants extends Component {
           // Display restaurant details
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0px', marginBottom: '0px' }}>
             <h1 className="custom-heading" style={{ marginTop: '50px', fontSize: '100px', marginBottom: '0px'}}>{restaurant.name}</h1>
-            <div className="magnifying-glass">
+            <div className="convex-glass">
               <svg viewBox="0 0 500 200" className="svg-container">
                 <defs>
                   {/* Define a filter with feDistortion component for lens effect */}
@@ -281,6 +399,14 @@ class NearbyRestaurants extends Component {
                 </text>
               </svg>
             </div>
+            <svg width="400" height="200">
+                {/* Rectangle background */}
+                <rect width="100%" height="100%" fill="white" />
+                {/* Text element */}
+                <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fill="black" fontSize="24">
+                  {this.state.mostRepeatedNouns[currentIndex]}
+                </text>
+            </svg>
             {/* <div style={{ textAlign: 'center', marginTop: '0px' }}> */}
               {/* Some text curving example */}
               {/* <svg className="curved-text" viewBox="0 0 425 300">
