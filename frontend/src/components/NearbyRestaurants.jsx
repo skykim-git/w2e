@@ -259,11 +259,11 @@ class NearbyRestaurants extends Component {
     const { bestRestaurants, currentIndex } = this.state;
     const restaurant = bestRestaurants[currentIndex] || {};
 
-    // Create SVG content
+    // Create SVG content for most popular menu
     const svgContent = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="400" height="200">
+    <svg xmlns="http://www.w3.org/2000/svg" width="100" height="50">
       <rect width="100%" height="100%" fill="white" />
-      <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="black" font-size="24">
+      <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="orange" font-size="50">
         ${this.state.mostRepeatedNouns[currentIndex] || ''}
       </text>
     </svg>` ;
@@ -273,40 +273,15 @@ class NearbyRestaurants extends Component {
           // Display restaurant details
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0px', marginBottom: '0px' }}>
             <h1 className="custom-heading" style={{ marginTop: '50px', fontSize: '100px', marginBottom: '0px'}}>{restaurant.name}</h1>
-            {/* <div className="convex-glass"> */}
-              {/* <svg viewBox="0 0 500 200" className="svg-container"> */}
-                {/* <defs> */}
-                  {/* Define a filter with feDistortion component for lens effect */}
-                  {/* <filter id="convexLens"> */}
-                    {/* <feGaussianBlur in="SourceGraphic" stdDeviation="5" /> */}
-                    {/* <feComponentTransfer> */}
-                      {/* <feFuncR type="table" tableValues="0 0.7 1" /> */}
-                      {/* <feFuncG type="table" tableValues="0 0.7 1" /> */}
-                      {/* <feFuncB type="table" tableValues="0 0.7 1" /> */}
-                    {/* </feComponentTransfer> */}
-                    {/* <feDisplacementMap in="SourceGraphic" scale="20" /> */}
-                  {/* </filter> */}
-                {/* </defs> */}
-                {/* <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="text-content"> */}
-                {/* {this.state.mostRepeatedNouns[currentIndex]} */}
-                {/* </text> */}
-              {/* </svg> */}
-            {/* </div> */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0px', marginBottom: '0px' }}>
               {/* <h1 className="custom-heading" style={{ marginTop: '50px', fontSize: '100px', marginBottom: '0px'}}>{restaurant.name}</h1> */}
               {/* Replace the existing SVG with FisheyeSVG */}
-              <FisheyeImage svgContent={svgContent} />
+              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.name)}&query_place_id=${restaurant.place_id}`} 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <FisheyeImage svgContent={svgContent} />
+              </a>
             </div>
-            {/* <div style={{ textAlign: 'center', marginTop: '0px' }}> */}
-              {/* Some text curving example */}
-              {/* <svg className="curved-text" viewBox="0 0 425 300">
-                <path id="curve" d="M6,150C49.63,93,105.79,36.65,156.2,47.55,207.89,58.74,213,131.91,264,150c40.67,14.43,108.57-6.91,229-145" />
-                <text x="25">
-                  <textPath href="#curve">
-                    Dangerous Curves Ahead
-                  </textPath>
-                </text>
-              </svg> */}
               {/* DISPLAYS RESTAURANT PHOTO */}
               {/* <div>
                 {restaurant.photos && restaurant.photos.length > 0 && (
@@ -317,8 +292,6 @@ class NearbyRestaurants extends Component {
                   </>
                 )}
               </div> */}
-              {/* <p className="lens-effect" style={{ marginBottom: '90px', fontSize: '100px', color:'#FF9800'  }}>{this.state.mostRepeatedNouns[currentIndex]}</p>
-            </div> */}
           </div>
         ) : (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0px', marginBottom: '0px' }}>

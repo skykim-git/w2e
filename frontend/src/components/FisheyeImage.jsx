@@ -5,8 +5,9 @@ const FisheyeImage = ({ svgContent }) => {
   const size = 400; // Size of the canvas
 
   useEffect(() => {
+    // Defines background canvas
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d'); // Loads 2d drawer
 
     // Create an image from the SVG content
     const img = new Image();
@@ -14,6 +15,8 @@ const FisheyeImage = ({ svgContent }) => {
     const url = URL.createObjectURL(svgBlob);
 
     img.onload = function() {
+
+
       // Draw the original image
       ctx.drawImage(img, 0, 0, size, size);
 
@@ -23,7 +26,7 @@ const FisheyeImage = ({ svgContent }) => {
       const pixelsCopy = [];
 
       // Copy pixels
-      for (let i = 0; i < pixels.length; i += 4) {
+      for (let i = 0; i < pixels.length; i += 4) { // 4 consequtive "pixels" represents a pixel (RGBA)
         pixelsCopy.push([pixels[i], pixels[i+1], pixels[i+2], pixels[i+3]]);
       }
 
@@ -59,10 +62,11 @@ const FisheyeImage = ({ svgContent }) => {
 
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {
+        // Calculates distance from the center
         const dx = x - centerX;
         const dy = y - centerY;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        
+        // For pixels smaller than the radius
         if (distance < radius) {
           const percent = Math.pow(distance / radius, 0.5);
           const newX = dx * percent + centerX;
