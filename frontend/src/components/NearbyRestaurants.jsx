@@ -1,4 +1,5 @@
 import React, { Component, createRef, useRef, useEffect, useState  } from 'react';
+// import { LoadScript } from '@react-google-maps/api';
 import { Map, GoogleApiWrapper } from 'google-maps-react';
 import './style.css';
 import './mag.css';
@@ -80,7 +81,7 @@ class NearbyRestaurants extends Component {
             // Get details for each restaurant
             const detailsRequest = {
               placeId: restaurant.place_id,
-              fields: ['name', 'types', 'reviews'] // Add 'reviews' field to retrieve reviews
+              fields: ['name', 'types', 'reviews', 'price_level', 'formatted_address'], // Add 'reviews' field to retrieve reviews
             };
             placesService.getDetails(detailsRequest, (placeDetails, status) => {
               if (status === google.maps.places.PlacesServiceStatus.OK) {
@@ -219,6 +220,36 @@ class NearbyRestaurants extends Component {
     });
   }
 
+  // // Function to fetch walking durations for each restaurant
+  // fetchDurations = (restaurants) => {
+  //   const { google } = this.props;
+  //   const { currentLocation } = this.state;
+  //   const service = new google.maps.DistanceMatrixService();
+
+  //   const destinations = restaurants.map(restaurant => {
+  //     return { lat: restaurant.geometry.location.lat(), lng: restaurant.geometry.location.lng() };
+  //   });
+
+  //   const request = {
+  //     origins: [currentLocation],
+  //     destinations: destinations,
+  //     travelMode: google.maps.TravelMode.WALKING,
+  //   };
+
+  //   service.getDistanceMatrix(request, (response, status) => {
+  //     if (status === google.maps.DistanceMatrixStatus.OK) {
+  //       const durations = response.rows[0].elements.map(element => element.duration.text);
+  //       const updatedRestaurants = this.state.bestRestaurants.map((restaurant, index) => ({
+  //         ...restaurant,
+  //         duration: durations[index]
+  //       }));
+  //       this.setState({ bestRestaurants: updatedRestaurants });
+  //     } else {
+  //       console.error('Error fetching distance matrix:', status);
+  //     }
+  //   });
+  // };
+
   // Function to handle button click to move to the next restaurant
   moveToNextRestaurant = () => {
     this.setState(prevState => ({
@@ -272,7 +303,7 @@ class NearbyRestaurants extends Component {
         {bestRestaurants.length - 1 >= currentIndex ? (
           // Display restaurant details
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0px', marginBottom: '0px' }}>
-            <h1 className="custom-heading" style={{ marginTop: '50px', fontSize: '100px', marginBottom: '50px'}}>{restaurant.name}</h1>
+            <h1 className="custom-heading" style={{ marginTop: '50px', fontSize: '100px', marginBottom: '00px'}}>{restaurant.name}</h1>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0px', marginBottom: '0px' }}>
               {/* <h1 className="custom-heading" style={{ marginTop: '50px', fontSize: '100px', marginBottom: '0px'}}>{restaurant.name}</h1> */}
               {/* Replace the existing SVG with FisheyeSVG */}
@@ -300,6 +331,10 @@ class NearbyRestaurants extends Component {
             </div>
           // Display a paragraph if no restaurants are available
         )}
+        {/* Restaurant Details price */}
+        <h1 className="custom-heading" style={{ marginTop: '0px', fontSize: '30px', marginBottom: '20px'}}>{"Price Point: "}{restaurant.price_level !== undefined ? '$'.repeat(restaurant.price_level) : 'Not available'}</h1>
+        <h1 className="custom-heading" style={{ marginTop: '0px', fontSize: '30px', marginBottom: '20px'}}>{restaurant.price_level}</h1>
+        {/* <h1 className="custom-heading" style={{ marginTop: '0px', fontSize: '30px', marginBottom: '20px'}}>{"ETA: "}{restaurant.duration || 'Calculating...'}</h1> */}
         {/* Button to move to the next restaurant */}
         <button className="custom-body" onClick={this.moveToNextRestaurant} style={{ marginTop: '0px', padding: '10px', backgroundColor: '#ff5722', color: 'black', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
           Next Restaurant
