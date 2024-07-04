@@ -263,8 +263,8 @@ class NearbyRestaurants extends Component {
     const svgContent = `
     <svg xmlns="http://www.w3.org/2000/svg" width="100" height="50">
       <rect width="100%" height="100%" fill="white" />
-      <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="orange" font-size="50">
-        ${this.state.mostRepeatedNouns[currentIndex] || ''}
+      <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="orange" font-size="40">
+      ${this.state.mostRepeatedNouns?.[currentIndex] || ''}
       </text>
     </svg>` ;
     return (
@@ -272,7 +272,7 @@ class NearbyRestaurants extends Component {
         {bestRestaurants.length - 1 >= currentIndex ? (
           // Display restaurant details
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0px', marginBottom: '0px' }}>
-            <h1 className="custom-heading" style={{ marginTop: '50px', fontSize: '100px', marginBottom: '0px'}}>{restaurant.name}</h1>
+            <h1 className="custom-heading" style={{ marginTop: '50px', fontSize: '100px', marginBottom: '50px'}}>{restaurant.name}</h1>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0px', marginBottom: '0px' }}>
               {/* <h1 className="custom-heading" style={{ marginTop: '50px', fontSize: '100px', marginBottom: '0px'}}>{restaurant.name}</h1> */}
               {/* Replace the existing SVG with FisheyeSVG */}

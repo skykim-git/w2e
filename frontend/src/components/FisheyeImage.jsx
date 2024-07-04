@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 
 const FisheyeImage = ({ svgContent }) => {
   const canvasRef = useRef(null);
-  const size = 400; // Size of the canvas
+  const size = 500; // Size of the canvas
 
   useEffect(() => {
     // Defines background canvas
@@ -57,8 +57,7 @@ const FisheyeImage = ({ svgContent }) => {
     const dstpixels = srcpixels.slice();
     const centerX = w / 2;
     const centerY = h / 2;
-    const radius = Math.min(w, h) / 2;
-    const strength = 2; // Adjust this for more/less distortion
+    const radius = Math.min(w, h) / 1.8; // adjusted radius divider for fitting
 
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {
@@ -68,9 +67,12 @@ const FisheyeImage = ({ svgContent }) => {
         const distance = Math.sqrt(dx * dx + dy * dy);
         // For pixels smaller than the radius
         if (distance < radius) {
-          const percent = Math.pow(distance / radius, 0.5);
-          const newX = dx * percent + centerX;
-          const newY = dy * percent + centerY;
+          const percent = Math.pow(distance*1 / radius, 1);
+          const xStretch = 1.1 // 1.2 point less streatch multiplyer
+          const yStretch = 0.9
+          // Source Index, the larger the percent(closer to 1) the less of a streach (sourcing from closer one)
+          const newX = dx * percent * xStretch + centerX;
+          const newY = dy * percent * yStretch + centerY;
           
           const srcIndex = Math.floor(newY) * w + Math.floor(newX);
           const dstIndex = y * w + x;
