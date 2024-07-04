@@ -1,8 +1,9 @@
-import React, { Component } from 'react';
+import React, { Component, createRef, useRef, useEffect, useState  } from 'react';
 import { Map, GoogleApiWrapper } from 'google-maps-react';
 import './style.css';
-// import './mag.css';
+import './mag.css';
 import nlp from 'compromise'; 
+import FisheyeImage from './FisheyeImage';  // Import the new component
 
 class NearbyRestaurants extends Component {
   state = {
@@ -15,10 +16,10 @@ class NearbyRestaurants extends Component {
     isSpinning : false, // State to control start page text spinning
     restReady : false, //
   };
+  
 
   // Lifecycle method called when the component is first added to the DOM
   componentDidMount() {
-    // Get user's current location
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(this.searchNearbyRestaurants);
     } else {
@@ -246,51 +247,41 @@ class NearbyRestaurants extends Component {
   renderFirstPage = () => {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-        <h1 className={this.state.isSpinning ? "custom-heading, spinning-text" : "custom-heading"} style={{ marginTop: '50px', fontSize: '200px' }}>W2E</h1>
-        <button onClick={this.handleButtonClick} style={{ marginTop: '20px', padding: '10px', backgroundColor: '#ff5722', color: 'black', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Start</button>
+        <h1 className={`${this.state.isSpinning ? 'spinning-text' : ''} custom-heading`} style={{ marginTop: '50px', fontSize: '200px' }}>W2E</h1>
+        <button className="custom-body" onClick={this.handleButtonClick} style={{ marginTop: '20px', padding: '10px', backgroundColor: '#ff5722', color: 'black', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Start</button>
       </div>
     );
   };
 
   // Renders the restaurant page
   renderRestaurantPage() {
+
     const { bestRestaurants, currentIndex } = this.state;
     const restaurant = bestRestaurants[currentIndex] || {};
+
+    // Create SVG content for most popular menu
+    const svgContent = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="100" height="50">
+      <rect width="100%" height="100%" fill="white" />
+      <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="orange" font-size="40">
+      ${this.state.mostRepeatedNouns?.[currentIndex] || ''}
+      </text>
+    </svg>` ;
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         {bestRestaurants.length - 1 >= currentIndex ? (
           // Display restaurant details
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0px', marginBottom: '0px' }}>
-            <h1 className="custom-heading" style={{ marginTop: '50px', fontSize: '100px', marginBottom: '0px'}}>{restaurant.name}</h1>
-            <div className="magnifying-glass">
-              <svg viewBox="0 0 500 200" className="svg-container">
-                <defs>
-                  {/* Define a filter with feDistortion component for lens effect */}
-                  <filter id="convexLens">
-                    <feGaussianBlur in="SourceGraphic" stdDeviation="5" />
-                    <feComponentTransfer>
-                      <feFuncR type="table" tableValues="0 0.7 1" />
-                      <feFuncG type="table" tableValues="0 0.7 1" />
-                      <feFuncB type="table" tableValues="0 0.7 1" />
-                    </feComponentTransfer>
-                    <feDisplacementMap in="SourceGraphic" scale="20" />
-                  </filter>
-                </defs>
-                <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="text-content">
-                {this.state.mostRepeatedNouns[currentIndex]}
-                </text>
-              </svg>
+            <h1 className="custom-heading" style={{ marginTop: '50px', fontSize: '100px', marginBottom: '50px'}}>{restaurant.name}</h1>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0px', marginBottom: '0px' }}>
+              {/* <h1 className="custom-heading" style={{ marginTop: '50px', fontSize: '100px', marginBottom: '0px'}}>{restaurant.name}</h1> */}
+              {/* Replace the existing SVG with FisheyeSVG */}
+              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.name)}&query_place_id=${restaurant.place_id}`} 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <FisheyeImage svgContent={svgContent} />
+              </a>
             </div>
-            {/* <div style={{ textAlign: 'center', marginTop: '0px' }}> */}
-              {/* Some text curving example */}
-              {/* <svg className="curved-text" viewBox="0 0 425 300">
-                <path id="curve" d="M6,150C49.63,93,105.79,36.65,156.2,47.55,207.89,58.74,213,131.91,264,150c40.67,14.43,108.57-6.91,229-145" />
-                <text x="25">
-                  <textPath href="#curve">
-                    Dangerous Curves Ahead
-                  </textPath>
-                </text>
-              </svg> */}
               {/* DISPLAYS RESTAURANT PHOTO */}
               {/* <div>
                 {restaurant.photos && restaurant.photos.length > 0 && (
@@ -301,8 +292,6 @@ class NearbyRestaurants extends Component {
                   </>
                 )}
               </div> */}
-              {/* <p className="lens-effect" style={{ marginBottom: '90px', fontSize: '100px', color:'#FF9800'  }}>{this.state.mostRepeatedNouns[currentIndex]}</p>
-            </div> */}
           </div>
         ) : (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0px', marginBottom: '0px' }}>
