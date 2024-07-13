@@ -7,18 +7,6 @@
     font-family: Arial, sans-serif;
   }
   
-  .restaurant-details {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 50px;
-  }
-  
-  .restaurant-name {
-    font-size: 48px;
-    margin-bottom: 20px;
-  }
-  
   .magnifying-glass {
     width: 500px;
     height: 200px;
@@ -38,30 +26,5 @@
   textPath {
     text-anchor: middle;
   }
-  
-  .no-restaurant {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 50px;
-  }
-  
-  .no-restaurant h1 {
-    font-size: 48px;
-  }
-  
-  .no-restaurant p {
-    font-size: 24px;
-    margin-top: 10px;
-  }
-  
-  button {
-    margin-top: 20px;
-    padding: 10px 20px;
-    background-color: #ff5722;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
+
   
