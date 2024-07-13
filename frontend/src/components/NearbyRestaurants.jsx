@@ -1,17 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useJsApiLoader, GoogleMap } from '@react-google-maps/api';
 import './style.css';
-// import './mag.css';
-import nlp from 'compromise';
 import FisheyeImage from './FisheyeImage';
 
 function NearbyRestaurants() {
-  const { isLoaded } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: process.env.REACT_APP_API_KEY,
-    libraries: ['places']
-  });
-
   const [bestRestaurants, setBestRestaurants] = useState([]);
   const [nextPageToken, setNextPageToken] = useState(null);
   const [showMapModal, setShowMapModal] = useState(false);
@@ -22,192 +13,57 @@ function NearbyRestaurants() {
   const [restReady, setRestReady] = useState(false);
   const [mostRepeatedNouns, setMostRepeatedNouns] = useState([]);
   const [travelTimes, setTravelTimes] = useState({});
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    if (isLoaded && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(searchNearbyRestaurants);
-    } else {
-      console.log("Geolocation is not supported by this browser.");
-    }
-  }, [isLoaded]);
-
-  const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371; // Radius of the earth in km
-    const dLat = deg2rad(lat2 - lat1);
-    const dLon = deg2rad(lon2 - lon1);
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2)
-    ; 
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-    const distance = R * c; // Distance in km
-    return distance;
-  };
-  
-  const deg2rad = (deg) => {
-    return deg * (Math.PI/180);
-  };
-  
-  const estimateWalkingTime = (distanceKm) => {
-    const walkingSpeedKmPerHour = 5; // Average walking speed
-    const timeHours = distanceKm / walkingSpeedKmPerHour;
-    const timeMinutes = Math.round(timeHours * 60);
-    return timeMinutes;
-  };
-  
-  const calculateTravelTimes = useCallback((restaurants, origin) => {
-    const newTravelTimes = {};
-    
-    restaurants.forEach((restaurant) => {
-      const startLat = origin.lat;
-      const startLng = origin.lng;
-      const endLat = restaurant.geometry.location.lat();
-      const endLng = restaurant.geometry.location.lng();
-      
-      const distanceKm = calculateDistance(startLat, startLng, endLat, endLng);
-      const walkingTimeMinutes = estimateWalkingTime(distanceKm);
-      
-      newTravelTimes[restaurant.place_id] = `~${walkingTimeMinutes*1.5} min (${distanceKm.toFixed(2)} km)`;
-      // Tried walking. Raw walking time *1.5 seems to be working fine.
-    });
-    
-    setTravelTimes(newTravelTimes);
+    fetchUser();
   }, []);
 
-  const fetchMoreReviews = useCallback((nextPageToken) => {
-    return new Promise((resolve, reject) => {
-      const placesService = new window.google.maps.places.PlacesService(document.createElement('div'));
-      const additionalRequest = { nextPageToken: nextPageToken };
-      placesService.getDetails(additionalRequest, (placeDetails, status) => {
-        if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-          const additionalReviews = placeDetails.reviews || [];
-          const additionalReviewTexts = additionalReviews.map(review => review.text);
-          resolve(additionalReviewTexts);
-        } else {
-          console.error('Error fetching additional reviews:', status);
-          reject();
-        }
+  const fetchUser = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/user`, {
+        credentials: 'include'
       });
-    });
-  }, []);
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+        if (userData && navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(fetchNearbyRestaurants);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user:', error);
+    }
+  };
 
-  const searchNearbyRestaurants = useCallback((position) => {
+  const fetchNearbyRestaurants = useCallback(async (position) => {
     const { latitude, longitude } = position.coords;
     setCurrentLocation({ lat: latitude, lng: longitude });
 
-    const placesService = new window.google.maps.places.PlacesService(document.createElement('div'));
-
-    const request = {
-      location: new window.google.maps.LatLng(latitude, longitude),
-      radius: 1000,
-      type: 'restaurant',
-      rankBy: window.google.maps.places.RankBy.PROMINENCE,
-      types: ['restaurant']
-    };
-
-    placesService.nearbySearch(request, (results, status, pagination) => {
-      if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-        const filteredRestaurants = results.filter(restaurant => {
-          return restaurant.rating >= 4.0 && restaurant.user_ratings_total >= 30 &&
-           !restaurant.name.toLowerCase().includes('hotel');
-        });
-
-        const promises = filteredRestaurants.map(restaurant => {
-          return new Promise((resolve, reject) => {
-            const detailsRequest = {
-              placeId: restaurant.place_id,
-              fields: ['name', 'types', 'reviews', 'price_level', 'formatted_address'],
-            };
-            placesService.getDetails(detailsRequest, (placeDetails, status) => {
-              if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-                const topReview = placeDetails.reviews && placeDetails.reviews.length > 0 ? placeDetails.reviews[0] : 'null';
-                resolve({ ...restaurant, topReview });
-              } else {
-                console.error('Error fetching restaurant details:', status);
-                reject(status);
-              }
-            });
-          });
-        });
-
-        const reviewPromises = filteredRestaurants.map(restaurant => {
-          return new Promise((resolve, reject) => {
-            const detailsRequest = {
-              placeId: restaurant.place_id,
-              fields: ['reviews']
-            };
-            placesService.getDetails(detailsRequest, (placeDetails, status) => {
-              if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-                const reviews = placeDetails.reviews || [];
-                const reviewTexts = reviews.map(review => review.text);
-                if (placeDetails.next_page_token) {
-                  fetchMoreReviews(placeDetails.next_page_token)
-                    .then(additionalReviews => {
-                      resolve([...reviewTexts, ...additionalReviews]);
-                    })
-                    .catch(error => {
-                      console.error('Error fetching additional reviews:', error);
-                      resolve(reviewTexts);
-                    });
-                } else {
-                  resolve(reviewTexts);
-                }
-              } else {
-                console.error('Error fetching reviews for restaurant:', status);
-                reject();
-              }
-            });
-          });
-        });
-
-        Promise.all([...promises, ...reviewPromises])
-          .then(results => {
-            const restaurantsWithReviews = results.slice(0, promises.length);
-            const reviewTextsArray = results.slice(promises.length);
-            setBestRestaurants(restaurantsWithReviews);
-            calculateTravelTimes(restaurantsWithReviews, { lat: latitude, lng: longitude });
-            setRestReady(true);
-
-            const newMostRepeatedNouns = reviewTextsArray.map((reviewTexts) => {
-              const allReviewsText = [].concat.apply([], reviewTexts);
-              const giantString = allReviewsText.join(' ');
-              const doc = nlp(giantString);
-              const nouns = doc.nouns().out('array');
-
-              const exclusionList = ["i", "you", "he", "she", "it", "we", "they", "me", "him", "her", "us", "them", "my", "your", "his", "its", "our", "their", "mine", "yours", "hers", "ours", "theirs", "a", "an", "the"];
-              const customExclusionList = [ "food", "place", "staff", "won", "bad", "great", "and", "this", "that"];
-              
-              const individualNouns = nouns.flatMap(phrase => phrase.toLowerCase().split(/\W+/))
-                                            .filter(word => word && !exclusionList.includes(word) && !customExclusionList.includes(word));
-              
-              const nounCounts = {};
-              individualNouns.forEach(noun => {
-                nounCounts[noun] = (nounCounts[noun] || 0) + 1;
-              });
-
-              let mostRepeatedNoun;
-              let maxCount = 0;
-              Object.entries(nounCounts).forEach(([noun, count]) => {
-                if (count > maxCount) {
-                  mostRepeatedNoun = noun;
-                  maxCount = count;
-                }
-              });
-
-              return mostRepeatedNoun || '';
-            });
-
-            setMostRepeatedNouns(newMostRepeatedNouns);
-          })
-          .catch(error => {
-            console.error('Error fetching restaurant details:', error);
-          });
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/nearby-restaurants`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ latitude, longitude }),
+        credentials: 'include',
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        setBestRestaurants(data.restaurants);
+        setTravelTimes(data.travelTimes);
+        setMostRepeatedNouns(data.mostRepeatedNouns);
+        setRestReady(true);
       } else {
-        console.error('Error fetching nearby restaurants:', status);
+        setUser(null);
+        alert(data.error);
       }
-    });
-  }, [fetchMoreReviews]);
+    } catch (error) {
+      console.error('Error fetching nearby restaurants:', error);
+    }
+  }, []);
 
   const moveToNextRestaurant = useCallback(() => {
     setCurrentIndex(prevIndex => prevIndex + 1);
@@ -223,6 +79,10 @@ function NearbyRestaurants() {
       setShowFirstPage(false);
     }, 3000);
   }, []);
+
+  const handleLogin = () => {
+    window.location.href = `${process.env.REACT_APP_BACKEND_URL}/auth/google`;
+  };
 
   const renderFirstPage = () => {
     return (
@@ -277,9 +137,18 @@ function NearbyRestaurants() {
     );
   };
 
-  if (!isLoaded) return <div>Loading...</div>;
+  if (!user) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+        <h1 className="custom-heading" style={{ marginBottom: '20px' }}>Welcome to Nearby Restaurants</h1>
+        <button onClick={handleLogin} style={{ padding: '10px', backgroundColor: '#4285F4', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Login with Google</button>
+      </div>
+    );
+  }
+
+  if (!restReady) return <div>Loading...</div>;
 
   return showFirstPage ? renderFirstPage() : renderRestaurantPage();
 }
 
-export default NearbyRestaurants;
+export default NearbyRestaurants
