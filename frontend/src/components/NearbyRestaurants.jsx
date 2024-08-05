@@ -20,71 +20,48 @@ function NearbyRestaurants() {
     fetchUser();
   }, []);
 
-  
-
   const fetchUser = async () => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user`, {
+      const response = await axios.get(`https://back.w2eserver.org/api/user`, {
         withCredentials: true,
-        // headers: {
-        //   'Content-Type': 'application/json',
-        //   'Accept': 'application/json',
-        //   'Access-Control-Allow-Origin': 'http://localhost:3000/'
-        // }
       });
   
       const userData = response.data;
-      console.log('ning');
       setUser(userData);
-      console.log('userdata',userData);
+      console.log('userdata', userData);
       
       if (userData && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(fetchNearbyRestaurants);
       }
     } catch (error) {
-      if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        console.error('Error response:', error.response.data);
-        console.error('Error status:', error.response.status);
-        console.error('Error headers:', error.response.headers);
-      } else if (error.request) {
-        // The request was made but no response was received
-        console.error('Error request:', error.request);
-      } else {
-        // Something happened in setting up the request that triggered an Error
-        console.error('Error message:', error.message);
-      }
-      console.error('Error config:', error.config);
+      console.error('Error fetching user:', error);
+      setUser(null);
     }
   };
+
 
   const fetchNearbyRestaurants = useCallback(async (position) => {
     const { latitude, longitude } = position.coords;
     setCurrentLocation({ lat: latitude, lng: longitude });
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/nearby-restaurants`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ latitude, longitude }),
-        credentials: 'include',
-      });
-      const data = await response.json();
+      const response = await axios.post(
+        `https://back.w2eserver.org/api/nearby-restaurants`,
+        { latitude, longitude },
+        { withCredentials: true }
+      );
       
-      if (response.ok) {
-        setBestRestaurants(data.restaurants);
-        setTravelTimes(data.travelTimes);
-        setMostRepeatedNouns(data.mostRepeatedNouns);
-        setRestReady(true);
-      } else {
-        setUser(null);
-        alert(data.error);
-      }
+      const data = response.data;
+      setBestRestaurants(data.restaurants);
+      setTravelTimes(data.travelTimes);
+      setMostRepeatedNouns(data.mostRepeatedNouns);
+      setRestReady(true);
     } catch (error) {
       console.error('Error fetching nearby restaurants:', error);
+      if (error.response && error.response.status === 401) {
+        setUser(null);
+        alert("You need to log in to access this feature.");
+      }
     }
   }, []);
 
@@ -103,8 +80,37 @@ function NearbyRestaurants() {
     }, 3000);
   }, []);
 
-  const handleLogin = () => {
-    window.location.href = `${process.env.REACT_APP_BACKEND_URL}/auth/google`;
+  const handleSignUpLogin = () => {
+    window.location.href = `$https://back.w2eserver.org/auth/google`;
+  };
+
+  const handleLogout = async () => {
+    try {
+      await axios.get(`https://back.w2eserver.org/auth/logout`, { withCredentials: true });
+      setUser(null);
+      setRestReady(false);
+      setBestRestaurants([]);
+      setCurrentIndex(0);
+      setShowFirstPage(true);
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
+
+  const renderAuthPage = () => {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+        <h1 className="custom-heading" style={{ marginBottom: '20px' }}>Welcome to Nearby Restaurants</h1>
+        <p style={{ marginBottom: '20px', textAlign: 'center' }}>
+          To use this service, please sign up or log in with your Google account.
+          <br />
+          If you don't have an account, one will be created for you automatically.
+        </p>
+        <button onClick={handleSignUpLogin} style={{ padding: '10px', backgroundColor: '#4285F4', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
+          Sign Up / Login with Google
+        </button>
+      </div>
+    );
   };
 
   const renderFirstPage = () => {
@@ -112,6 +118,11 @@ function NearbyRestaurants() {
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
         <h1 className={`${isSpinning ? 'spinning-text' : ''} custom-heading`} style={{ marginTop: '50px', fontSize: '200px' }}>W2E</h1>
         <button className="custom-body" onClick={handleButtonClick} style={{ marginTop: '20px', padding: '10px', backgroundColor: '#ff5722', color: 'black', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Start</button>
+        {user && (
+          <button onClick={handleLogout} style={{ marginTop: '20px', padding: '10px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
+            Logout
+          </button>
+        )}
       </div>
     );
   };
@@ -156,17 +167,16 @@ function NearbyRestaurants() {
         <button className="buttons" onClick={handlePrevious} disabled={currentIndex === 0} style={{ marginTop: '20px', padding: '10px', backgroundColor: '#ff5722', color: 'black', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
           Previous
         </button>
+        <button onClick={handleLogout} style={{ marginTop: '20px', padding: '10px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
+          Logout
+        </button>
       </div>
     );
   };
 
+
   if (!user) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-        <h1 className="custom-heading" style={{ marginBottom: '20px' }}>Welcome to Nearby Restaurants</h1>
-        <button onClick={handleLogin} style={{ padding: '10px', backgroundColor: '#4285F4', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Login with Google</button>
-      </div>
-    );
+    return renderAuthPage();
   }
 
   if (!restReady) return <div>Loading...</div>;
@@ -174,4 +184,4 @@ function NearbyRestaurants() {
   return showFirstPage ? renderFirstPage() : renderRestaurantPage();
 }
 
-export default NearbyRestaurants
+export default NearbyRestaurants;
