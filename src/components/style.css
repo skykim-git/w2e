@@ -3,11 +3,13 @@
   src: local('Fredoka-Medium'), url('../fonts/Fredoka-Medium.ttf') format('truetype');
 }
 
-body {
-  font-family: 'Fredoka', sans-serif;
+body, html {
+  height: 100%;
   margin: 0;
   padding: 0;
   line-height: 1.6;
+  font-family: 'Fredoka', sans-serif;
+  overflow: hidden; /* Prevents scrolling */
 }
 
 .page-container {
@@ -18,6 +20,8 @@ body {
   min-height: 100vh;
   padding: 20px;
   box-sizing: border-box;
+  text-align: center;
+  overflow: hidden; /* Prevents any internal scrolling */
 }
 
 .custom-heading {
@@ -68,20 +72,34 @@ body {
 }
 
 /* Styles for the restaurant page */
-.restaurant-page .restaurant-name {
+.restaurant-page {
   font-size: 100px;
   margin-top: 50px;
   margin-bottom: 0;
 }
 
-.fisheye-container {
-  margin-top: 0;
-  margin-bottom: 0;
+.restaurant-name {
+  font-size: 100px;
+  margin-top: -30px;
+  margin-bottom: 0px;
 }
 
-.price-level, .estimated-walk {
+.fisheye-container {
+  position: relative;
+  margin-top:-100px;
+  margin-bottom: 0;
+  z-index: 1;
+}
+
+.price-level {
   font-size: 15px;
-  margin-top: 0;
+  margin-top: -100px;
+  margin-bottom: 20px;
+}
+
+.estimated-walk {
+  font-size: 15px;
+  margin-top: 0px;
   margin-bottom: 20px;
 }
 
@@ -123,6 +141,7 @@ body {
   .buttons {
     font-size: 18px;
     padding: 8px 16px;
+    margin-bottom: 20px;
   }
 }
 
@@ -147,4 +166,55 @@ body {
   .price-level, .estimated-walk {
     font-size: 13px;
   }
+}
+.dots-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px 0;
+  margin-top: -130px;
+  z-index: 2;
+}
+
+.dots-container-upper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px 0;
+  margin-top: 20px;
+  margin-bottom: 0px;
+  z-index: 2;
+}
+
+.dots-row {
+  display: flex;
+  justify-content: space-between; /* Controls spacing between dots */
+  width: 130px; /* Increase or decrease this value to adjust spacing */
+  margin: 10px 0; /* Adjust vertical spacing between rows */
+}
+
+.dot {
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  /* margin: 0 10px; */
+}
+
+.grey-dot {
+  background-color: lightgrey;
+}
+
+.green-dot {
+  background-color: green;
+}
+
+.red-dot {
+  background-color: red;
+}
+
+.invisible-dot {
+  background-color: transparent; /* Or use 'white' if your background is white */
+  visibility: hidden; /* This hides the dot while keeping its space */
 }

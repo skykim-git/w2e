@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSwipeable } from 'react-swipeable'; // Import the swipeable hook
 import './style.css';
 import FisheyeImage from './FisheyeImage';
 import axios from 'axios';
@@ -14,33 +15,12 @@ function NearbyRestaurants() {
   const [restReady, setRestReady] = useState(false);
   const [mostRepeatedNouns, setMostRepeatedNouns] = useState([]);
   const [travelTimes, setTravelTimes] = useState({});
-  // const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // fetchUser();
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(fetchNearbyRestaurants);
     }
   }, []);
-
-  // const fetchUser = async () => {
-  //   try {
-  //     const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user`, {
-  //       withCredentials: true,
-  //     });
-  
-  //     const userData = response.data;
-  //     setUser(userData);
-  //     console.log('userdata', userData);
-      
-  //     if (userData && navigator.geolocation) {
-  //       navigator.geolocation.getCurrentPosition(fetchNearbyRestaurants);
-  //     }
-  //   } catch (error) {
-  //     console.error('Error fetching user:', error);
-  //     setUser(null);
-  //   }
-  // };
 
   const fetchNearbyRestaurants = useCallback(async (position) => {
     const { latitude, longitude } = position.coords;
@@ -60,19 +40,27 @@ function NearbyRestaurants() {
       setRestReady(true);
     } catch (error) {
       console.error('Error fetching nearby restaurants:', error);
-      // if (error.response && error.response.status === 401) {
-      //   setUser(null);
-      //   alert("You need to log in to access this feature.");
-      // }
     }
   }, []);
 
   const moveToNextRestaurant = useCallback(() => {
-    setCurrentIndex(prevIndex => prevIndex + 1);
-  }, []);
+    setCurrentIndex(prevIndex => {
+      if (prevIndex === bestRestaurants.length - 1) {
+        alert('You have reached the last restaurant.');
+        return prevIndex;
+      }
+      return prevIndex + 1;
+    });
+  }, [bestRestaurants.length]);
 
   const handlePrevious = useCallback(() => {
-    setCurrentIndex(prevIndex => prevIndex > 0 ? prevIndex - 1 : 0);
+    setCurrentIndex(prevIndex => {
+      if (prevIndex === 0) {
+        alert('You have reached the first restaurant.');
+        return prevIndex;
+      }
+      return prevIndex - 1;
+    });
   }, []);
 
   const handleButtonClick = useCallback(() => {
@@ -82,38 +70,81 @@ function NearbyRestaurants() {
     }, 3000);
   }, []);
 
-  // const handleSignUpLogin = () => {
-  //   window.location.href = `${process.env.REACT_APP_BACKEND_URL}/auth/google`;
-  // };
+  // Swipe handlers
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: moveToNextRestaurant,   // Swipe left to go to next restaurant
+    onSwipedRight: handlePrevious,        // Swipe right to go to previous restaurant
+    preventDefaultTouchmoveEvent: true,
+    trackMouse: true // Allows swiping with mouse as well
+  });
 
-  // const handleLogout = async () => {
-  //   try {
-  //     await axios.get(`${process.env.REACT_APP_BACKEND_URL}/auth/logout`, { withCredentials: true });
-  //     setUser(null);
-  //     setRestReady(false);
-  //     setBestRestaurants([]);
-  //     setCurrentIndex(0);
-  //     setShowFirstPage(true);
-  //   } catch (error) {
-  //     console.error('Error logging out:', error);
-  //   }
-  // };
+  const renderDots = (priceLevel = 0, estimatedWalkTime = 0, isLowerComponent = true) => {
+    const greenDots = Math.min(3, Math.max(0, priceLevel));  // Cap at 3, ensure non-negative
+    const redDots = Math.min(3, estimatedWalkTime);  // Cap at 3, safely parsed
+  
+    if (isLowerComponent) {
+      // Lower component behavior remains the same
+      return (
+        <div className="dots-container">
+          {[3, 2, 1].map((level) => (
+            <div className="dots-row" key={`row-${level}`}>
+              <div className={`dot ${greenDots >= level ? 'green-dot' : 'invisible-dot'}`}></div>
+              <div className="dot grey-dot"></div>
+              <div className={`dot ${redDots >= level ? 'red-dot' : 'invisible-dot'}`}></div>
+            </div>
+          ))}
+          {[...Array(3)].map((_, index) => (
+            <div className="dots-row" key={`row-empty-${index}`}>
+              <div className="dot"></div>
+              <div className="dot grey-dot"></div>
+              <div className="dot"></div>
+            </div>
+          ))}
+        </div>
+      );
+    } else {
+      // Upper component behavior
+      return (
+        <div className="dots-container-upper">
+          <div className="dots-row">
+            <div className="dot"></div>
+            <div className="dot grey-dot"></div>
+            <div className="dot"></div>
+          </div>
+          <div className="dots-row">
+            <div className="dot"></div>
+            <div className="dot grey-dot"></div>
+            <div className="dot"></div>
+          </div>
+          <div className="dots-row">
+            <div className="dot"></div>
+            <div className="dot grey-dot"></div>
+            <div className="dot"></div>
+          </div>
+          <div className="dots-row">
+            <div className="dot grey-dot"></div>
+            <div className="dot grey-dot"></div>
+            <div className="dot grey-dot"></div>
+          </div>
+          <div className="dots-row">
+            <div className="dot grey-dot"></div>
+            <div className="dot grey-dot"></div>
+            <div className="dot grey-dot"></div>
+          </div>
+          <div className="dots-row">
+            <div className="dot"></div>
+            <div className="dot grey-dot"></div>
+            <div className="dot"></div>
+          </div>
+        </div>
+      );
+    }
+  };
+  
+  
+  
+  
 
-  // const renderAuthPage = () => {
-  //   return (
-  //     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-  //       <h1 className="custom-heading" style={{ marginBottom: '20px' }}>Welcome to Nearby Restaurants</h1>
-  //       <p style={{ marginBottom: '20px', textAlign: 'center' }}>
-  //         To use this service, please sign up or log in with your Google account.
-  //         <br />
-  //         If you don't have an account, one will be created for you automatically.
-  //       </p>
-  //       <button onClick={handleSignUpLogin} style={{ padding: '10px', backgroundColor: '#4285F4', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
-  //         Sign Up / Login with Google
-  //       </button>
-  //     </div>
-  //   );
-  // };
 
   const renderFirstPage = () => {
     return (
@@ -128,18 +159,23 @@ function NearbyRestaurants() {
     const restaurant = bestRestaurants[currentIndex] || {};
     const travelTime = travelTimes[restaurant.place_id] || 'Calculating...';
     const svgContent = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="100" height="50">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150" preserveAspectRatio="xMidYMid meet">
       <rect width="100%" height="100%" fill="white" />
       <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="orange" font-size="40">
-      ${mostRepeatedNouns[currentIndex] || ''}
+        ${mostRepeatedNouns[currentIndex] || ''}
       </text>
     </svg>`;
 
+    const priceLevel = restaurant.price_level || 0;
+    const estimatedWalkTime = travelTime !== 'Calculating...' ? Math.ceil(parseInt(travelTime.match(/\d+(?=\s*min)/)) / 5) : 0;
+
+
     return (
-      <div className="page-container restaurant-page">
-        {bestRestaurants.length - 1 >= currentIndex ? (
+      <div className="centered-container" {...swipeHandlers}>
+        <div className="dots-wrapper">
+          <div className="dots-placeholder"></div>
+          {renderDots(priceLevel, estimatedWalkTime, false)}
           <div className="restaurant-info">
-            <h1 className="custom-heading restaurant-name">{restaurant.name}</h1>
             <div className="fisheye-container">
               <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.name)}&query_place_id=${restaurant.place_id}`} 
                  target="_blank" 
@@ -147,23 +183,10 @@ function NearbyRestaurants() {
                 <FisheyeImage svgContent={svgContent} />
               </a>
             </div>
+            {renderDots(priceLevel, estimatedWalkTime, true)}
           </div>
-        ) : (
-          <div className="no-more-restaurants">
-            <h1 className="custom-heading">Hmm...</h1>
-            <p className="custom-body">Why don't you use Google Maps now?</p>
-          </div>
-        )}
-        <h1 className="custom-heading price-level">{"Price Point: "}{restaurant.price_level !== undefined ? '$'.repeat(restaurant.price_level) : 'Not available'}</h1>
-        <h1 className="custom-heading estimated-walk">
-          {"Estimated Walk: "}{travelTime}
-        </h1>
-        <button className="buttons next-button" onClick={moveToNextRestaurant}>
-          Next Restaurant
-        </button>
-        <button className="buttons previous-button" onClick={handlePrevious} disabled={currentIndex === 0}>
-          Previous
-        </button>
+          <div className="dots-placeholder"></div>
+        </div>
       </div>
     );
   };
