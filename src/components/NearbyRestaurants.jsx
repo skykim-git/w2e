@@ -117,14 +117,9 @@ function NearbyRestaurants() {
 
   const renderFirstPage = () => {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-        <h1 className={`${isSpinning ? 'spinning-text' : ''} custom-heading`} style={{ marginTop: '50px', fontSize: '200px' }}>W2E</h1>
-        <button className="custom-body" onClick={handleButtonClick} style={{ marginTop: '20px', padding: '10px', backgroundColor: '#ff5722', color: 'black', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Start</button>
-        {/* {user && (
-          <button onClick={handleLogout} style={{ marginTop: '20px', padding: '10px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
-            Logout
-          </button>
-        )} */}
+      <div className="page-container first-page">
+        <h1 className={`spinning-text custom-heading ${isSpinning ? 'spinning' : ''}`}>W2E</h1>
+        <button className="custom-body start-button" onClick={handleButtonClick}>Start</button>
       </div>
     );
   };
@@ -141,11 +136,11 @@ function NearbyRestaurants() {
     </svg>`;
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div className="page-container restaurant-page">
         {bestRestaurants.length - 1 >= currentIndex ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0px', marginBottom: '0px' }}>
-            <h1 className="custom-heading" style={{ marginTop: '50px', fontSize: '100px', marginBottom: '00px'}}>{restaurant.name}</h1>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0px', marginBottom: '0px' }}>
+          <div className="restaurant-info">
+            <h1 className="custom-heading restaurant-name">{restaurant.name}</h1>
+            <div className="fisheye-container">
               <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.name)}&query_place_id=${restaurant.place_id}`} 
                  target="_blank" 
                  rel="noopener noreferrer">
@@ -154,33 +149,26 @@ function NearbyRestaurants() {
             </div>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0px', marginBottom: '0px' }}>
-            <h1 className="custom-heading" style={{ marginTop: '50px', fontSize: '100px' }}>Hmm...</h1>
-            <p className="custom-body" style={{ height: '190px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginTop: '20px' }}>Why don't you use Google Maps now?</p>
+          <div className="no-more-restaurants">
+            <h1 className="custom-heading">Hmm...</h1>
+            <p className="custom-body">Why don't you use Google Maps now?</p>
           </div>
         )}
-        <h1 className="custom-heading" style={{ marginTop: '0px', fontSize: '15px', marginBottom: '20px'}}>{"Price Point: "}{restaurant.price_level !== undefined ? '$'.repeat(restaurant.price_level) : 'Not available'}</h1>
-        <h1 className="custom-heading" style={{ marginTop: '0px', fontSize: '15px', marginBottom: '20px'}}>
+        <h1 className="custom-heading price-level">{"Price Point: "}{restaurant.price_level !== undefined ? '$'.repeat(restaurant.price_level) : 'Not available'}</h1>
+        <h1 className="custom-heading estimated-walk">
           {"Estimated Walk: "}{travelTime}
         </h1>
-        <button className="buttons" onClick={moveToNextRestaurant} style={{ marginTop: '0px', padding: '10px', backgroundColor: '#ff5722', color: 'black', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
+        <button className="buttons next-button" onClick={moveToNextRestaurant}>
           Next Restaurant
         </button>
-        <button className="buttons" onClick={handlePrevious} disabled={currentIndex === 0} style={{ marginTop: '20px', padding: '10px', backgroundColor: '#ff5722', color: 'black', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
+        <button className="buttons previous-button" onClick={handlePrevious} disabled={currentIndex === 0}>
           Previous
         </button>
-        {/* <button onClick={handleLogout} style={{ marginTop: '20px', padding: '10px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
-          Logout
-        </button> */}
       </div>
     );
   };
 
-  // if (!user) {
-  //   return renderAuthPage();
-  // }
-
-  if (!restReady) return <div>Loading...</div>;
+  if (!restReady) return <div className="loading">Loading...</div>;
 
   return showFirstPage ? renderFirstPage() : renderRestaurantPage();
 }

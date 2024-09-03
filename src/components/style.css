@@ -5,27 +5,32 @@
 
 body {
   font-family: 'Fredoka', sans-serif;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
 }
 
-.custom-heading {
-  /* display: flex;
+.page-container {
+  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 20vh; */
+  min-height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.custom-heading {
+  text-align: center;
 }
 
 .custom-body {
-  /* display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center; 
-  height: 10vh; */
+  text-align: center;
 }
 
 .buttons {
-  font-size: 20px; /* Example font size */
-  margin-top: 0px; /* For the first button */
+  font-size: 20px;
+  margin-top: 0px;
   padding: 10px;
   background-color: #ff5722;
   color: black;
@@ -37,7 +42,6 @@ body {
 .buttons.margin-top-20 {
   margin-top: 20px;
 }
-
 
 @keyframes spinClockwise {
   from {
@@ -51,4 +55,96 @@ body {
 .spinning-text {
   animation: spinClockwise 3s linear infinite;
   transform-origin: center;
+}
+
+/* Styles for the first page */
+.first-page .custom-heading {
+  font-size: 200px;
+  margin-top: 50px;
+}
+
+.start-button {
+  margin-top: 20px;
+}
+
+/* Styles for the restaurant page */
+.restaurant-page .restaurant-name {
+  font-size: 100px;
+  margin-top: 50px;
+  margin-bottom: 0;
+}
+
+.fisheye-container {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.price-level, .estimated-walk {
+  font-size: 15px;
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.no-more-restaurants .custom-heading {
+  font-size: 100px;
+  margin-top: 50px;
+}
+
+.no-more-restaurants .custom-body {
+  height: 190px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Media Queries for Responsive Design */
+@media screen and (max-width: 768px) {
+  .first-page .custom-heading {
+    font-size: 120px;
+  }
+
+  .restaurant-page .restaurant-name {
+    font-size: 60px;
+  }
+
+  .no-more-restaurants .custom-heading {
+    font-size: 60px;
+  }
+
+  .buttons {
+    font-size: 18px;
+    padding: 8px 16px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .first-page .custom-heading {
+    font-size: 80px;
+  }
+
+  .restaurant-page .restaurant-name {
+    font-size: 40px;
+  }
+
+  .no-more-restaurants .custom-heading {
+    font-size: 40px;
+  }
+
+  .buttons {
+    font-size: 16px;
+    padding: 6px 12px;
+  }
+
+  .price-level, .estimated-walk {
+    font-size: 13px;
+  }
 }
