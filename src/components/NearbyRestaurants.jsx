@@ -161,7 +161,7 @@ function NearbyRestaurants() {
     const svgContent = `
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150" preserveAspectRatio="xMidYMid meet">
       <rect width="100%" height="100%" fill="white" />
-      <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="orange" font-size="40">
+      <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="orange" font-size="25">
         ${mostRepeatedNouns[currentIndex] || ''}
       </text>
     </svg>`;
