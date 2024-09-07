@@ -218,3 +218,111 @@ body, html {
   background-color: transparent; /* Or use 'white' if your background is white */
   visibility: hidden; /* This hides the dot while keeping its space */
 }
+
+.toggle-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.toggle-label {
+  margin: 0 10px;
+  color: #888;
+  transition: color 0.3s ease;
+}
+
+.toggle-label.active {
+  color: #000;
+  font-weight: bold;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  overflow: hidden;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  z-index: 2;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+.slider-text {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  transition: .4s;
+  z-index: 1;
+}
+
+.slider-text.restaurant {
+  left: 10px;
+}
+
+.slider-text.cafe {
+  right: 10px;
+}
+
+input:checked + .slider .slider-text.restaurant {
+  transform: translateX(-30px) translateY(-50%);
+}
+
+input:checked + .slider .slider-text.cafe {
+  transform: translateX(0) translateY(-50%);
+}
+
+input:not(:checked) + .slider .slider-text.restaurant {
+  transform: translateX(0) translateY(-50%);
+}
+
+input:not(:checked) + .slider .slider-text.cafe {
+  transform: translateX(30px) translateY(-50%);
+}
