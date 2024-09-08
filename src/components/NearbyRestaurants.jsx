@@ -22,10 +22,14 @@ function NearbyRestaurants() {
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(fetchNearbyPlaces);
+      console.log(isRestaurantMode);
     }
   }, [isRestaurantMode]);
 
   const fetchNearbyPlaces = useCallback(async (position) => {
+
+    if (isLoading) return; // Prevent refetching if already loading
+
     const { latitude, longitude } = position.coords;
     setCurrentLocation({ lat: latitude, lng: longitude });
     setIsLoading(true);
@@ -85,9 +89,9 @@ function NearbyRestaurants() {
       setCurrentIndex(0);
       setRestReady(false);
       setBestPlaces([]);
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(fetchNearbyPlaces);
-      }
+      // if (navigator.geolocation) {
+      //   navigator.geolocation.getCurrentPosition(fetchNearbyPlaces);
+      // }
     }
   }, [showFirstPage, fetchNearbyPlaces]);
 
