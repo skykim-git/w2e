@@ -268,14 +268,11 @@ function NearbyRestaurants() {
 
   const renderToggleButton = () => {
     return (
-      <div className="toggle-container">
+      <div className={`toggle-container ${showMap ? 'map-visible' : ''}`}>
         <span className={`toggle-label ${isRestaurantMode ? 'active' : ''}`}>Restaurants</span>
         <label className="switch">
           <input type="checkbox" checked={!isRestaurantMode} onChange={handleToggle} />
-          <span className="slider round">
-            {/* <span className="slider-text restaurant">🍽️</span>
-            <span className="slider-text cafe">☕</span> */}
-          </span>
+          <span className="slider round"></span>
         </label>
         <span className={`toggle-label ${!isRestaurantMode ? 'active' : ''}`}>Cafes</span>
       </div>
@@ -285,7 +282,9 @@ function NearbyRestaurants() {
   const renderFirstPage = () => {
     return (
       <div className={`page-container first-page ${showMap ? 'map-visible' : ''}`}>
-        <h1 className={`spinning-text custom-heading ${isSpinning ? 'spinning' : ''}`}>W2E</h1>
+        {!showMap && (
+          <h1 className={`spinning-text custom-heading ${isSpinning ? 'spinning' : ''}`}>W2E</h1>
+        )}
         {renderToggleButton()}
         {showMap && currentLocation && (
           <div className="map-container">
