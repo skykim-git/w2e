@@ -1,8 +1,19 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSwipeable } from 'react-swipeable';
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 import './style.css';
 import FisheyeImage from './FisheyeImage';
 import axios from 'axios';
+
+// Fix Leaflet's default icon path issues
+import L from 'leaflet';
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+  iconUrl: require('leaflet/dist/images/marker-icon.png'),
+  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+});
 
 function NearbyRestaurants() {
   const [bestPlaces, setBestPlaces] = useState([]);
@@ -18,20 +29,72 @@ function NearbyRestaurants() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isRestaurantMode, setIsRestaurantMode] = useState(true);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [showMap, setShowMap] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResult, setSearchResult] = useState('');
+  const mapRef = useRef(null);
 
   useEffect(() => {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(fetchNearbyPlaces);
-      console.log(isRestaurantMode);
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          const location = { lat: latitude, lng: longitude };
+          setCurrentLocation(location);
+          setSelectedLocation(location);
+        },
+        (error) => {
+          console.error("Error getting user's location:", error);
+          // You might want to handle this error, perhaps by showing a message to the user
+        }
+      );
+    } else {
+      console.error("Geolocation is not supported by this browser.");
+      // You might want to handle this case, perhaps by showing a message to the user
     }
-  }, [isRestaurantMode]);
+  }, []);
+
+  function MapEvents() {
+    const map = useMap();
+    mapRef.current = map;
+    useMapEvents({
+      click(e) {
+        setSelectedLocation(e.latlng);
+        fetchLocationName(e.latlng.lat, e.latlng.lng);
+      },
+    });
+
+    useEffect(() => {
+      if (selectedLocation) {
+        map.setView([selectedLocation.lat, selectedLocation.lng], map.getZoom());
+      }
+    }, [selectedLocation, map]);
+
+    return null;
+  }
+
+  const fetchLocationName = async (lat, lng) => {
+    try {
+      const response = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+      if (response.data && response.data.display_name) {
+        // Extract just the place name from the display_name
+        const placeName = response.data.display_name.split(',')[0].trim();
+        setSearchResult(placeName);
+      } else {
+        setSearchResult('');
+      }
+    } catch (error) {
+      console.error('Error fetching location name:', error);
+      setSearchResult('');
+    }
+  };
 
   const fetchNearbyPlaces = useCallback(async (position) => {
-
     if (isLoading) return; // Prevent refetching if already loading
 
-    const { latitude, longitude } = position.coords;
-    setCurrentLocation({ lat: latitude, lng: longitude });
+    const { lat, lng } = position;
+    setCurrentLocation({ lat, lng });
     setIsLoading(true);
     setError(null);
 
@@ -39,7 +102,7 @@ function NearbyRestaurants() {
       const endpoint = isRestaurantMode ? 'nearby-restaurants' : 'nearby-cafes';
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/${endpoint}`,
-        { latitude, longitude },
+        { latitude: lat, longitude: lng },
         { withCredentials: true }
       );
       
@@ -77,11 +140,16 @@ function NearbyRestaurants() {
   }, [isRestaurantMode]);
 
   const handleButtonClick = useCallback(() => {
-    setIsSpinning(prevState => !prevState);
-    setTimeout(() => {
-      setShowFirstPage(false);
-    }, 0);
-  }, []);
+    if (selectedLocation) {
+      setIsSpinning(true);
+      setTimeout(() => {
+        setShowFirstPage(false);
+        fetchNearbyPlaces(selectedLocation);
+      }, 1000);
+    } else {
+      alert("Please select a location on the map first.");
+    }
+  }, [selectedLocation, fetchNearbyPlaces]);
 
   const handleToggle = useCallback(() => {
     setIsRestaurantMode(prev => !prev);
@@ -89,11 +157,42 @@ function NearbyRestaurants() {
       setCurrentIndex(0);
       setRestReady(false);
       setBestPlaces([]);
-      // if (navigator.geolocation) {
-      //   navigator.geolocation.getCurrentPosition(fetchNearbyPlaces);
-      // }
+      if (selectedLocation) {
+        fetchNearbyPlaces(selectedLocation);
+      }
     }
-  }, [showFirstPage, fetchNearbyPlaces]);
+  }, [showFirstPage, fetchNearbyPlaces, selectedLocation]);
+
+  const handleMapToggle = () => {
+    setShowMap(prev => !prev);
+  };
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+
+    try {
+      const response = await axios.get(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`);
+      if (response.data && response.data.length > 0) {
+        const { lat, lon, display_name } = response.data[0];
+        const newLocation = { lat: parseFloat(lat), lng: parseFloat(lon) };
+        setSelectedLocation(newLocation);
+        
+        // Extract just the place name from the display_name
+        const placeName = display_name.split(',')[0].trim();
+        setSearchResult(placeName);
+        
+        if (mapRef.current) {
+          mapRef.current.setView([newLocation.lat, newLocation.lng], 13);
+        }
+      } else {
+        setSearchResult('Location not found');
+      }
+    } catch (error) {
+      console.error('Error searching for location:', error);
+      setSearchResult('Error searching location');
+    }
+  };
 
   // Swipe handlers
   const swipeHandlers = useSwipeable({
@@ -165,10 +264,6 @@ function NearbyRestaurants() {
       );
     }
   };
-  
-  
-  
-  
 
 
   const renderToggleButton = () => {
@@ -178,8 +273,8 @@ function NearbyRestaurants() {
         <label className="switch">
           <input type="checkbox" checked={!isRestaurantMode} onChange={handleToggle} />
           <span className="slider round">
-            <span className="slider-text restaurant">🍽️</span>
-            <span className="slider-text cafe">☕</span>
+            {/* <span className="slider-text restaurant">🍽️</span>
+            <span className="slider-text cafe">☕</span> */}
           </span>
         </label>
         <span className={`toggle-label ${!isRestaurantMode ? 'active' : ''}`}>Cafes</span>
@@ -189,12 +284,41 @@ function NearbyRestaurants() {
 
   const renderFirstPage = () => {
     return (
-      <div className="page-container first-page">
+      <div className={`page-container first-page ${showMap ? 'map-visible' : ''}`}>
         <h1 className={`spinning-text custom-heading ${isSpinning ? 'spinning' : ''}`}>W2E</h1>
         {renderToggleButton()}
-        <button className="custom-body start-button" onClick={handleButtonClick}>
-          Start
-        </button>
+        {showMap && currentLocation && (
+          <div className="map-container">
+            <form onSubmit={handleSearch} className="search-form">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search for a place"
+                className="search-input"
+              />
+              <button type="submit" className="search-button">Search</button>
+            </form>
+            {searchResult && <div className="search-result">{searchResult}</div>}
+            <MapContainer 
+              center={[currentLocation.lat, currentLocation.lng]} 
+              zoom={13} 
+              style={{ height: '300px', width: '100%', marginTop: '10px' }}
+            >
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <MapEvents />
+              {selectedLocation && <Marker position={selectedLocation} />}
+            </MapContainer>
+          </div>
+        )}
+        <div className="button-container">
+          <button className="map-button" onClick={handleMapToggle}>
+            {showMap ? 'Hide Map' : 'Show Map'}
+          </button>
+          <button className="start-button" onClick={handleButtonClick}>
+            Start
+          </button>
+        </div>
       </div>
     );
   };

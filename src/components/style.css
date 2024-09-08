@@ -68,7 +68,9 @@ body, html {
 }
 
 .start-button {
-  margin-top: 20px;
+  margin-top: 10px;
+  background-color: #ff4444; /* Softer red color */
+  color: white; /* Changed to white for better contrast */
 }
 
 /* Styles for the restaurant page */
@@ -325,4 +327,140 @@ input:not(:checked) + .slider .slider-text.restaurant {
 
 input:not(:checked) + .slider .slider-text.cafe {
   transform: translateX(30px) translateY(-50%);
+}
+
+@import '~leaflet/dist/leaflet.css';
+
+.leaflet-container {
+  height: 400px;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.map-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 1em;
+  cursor: pointer;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+
+.map-button:hover {
+  background-color: #45a049;
+}
+
+.start-button {
+  margin-top: 10px;
+  background-color: #ff4444; /* Softer red color */
+  color: white; /* Changed to white for better contrast */
+}
+
+.start-button:hover {
+  background-color: #ff6666; /* Lighter red on hover */
+}
+
+.search-form {
+  display: flex;
+  margin-bottom: 10px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.search-input {
+  flex-grow: 1;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px 0 0 4px;
+}
+
+.search-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+}
+
+.search-button:hover {
+  background-color: #45a049;
+}
+
+.search-result {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  font-size: 14px;
+  max-width: 400px;
+  word-wrap: break-word;
+}
+
+.map-visible .custom-heading {
+  margin-bottom: 10px;
+}
+
+.map-visible .toggle-container {
+  margin-bottom: 10px;
+}
+
+.map-container {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.map-button {
+  margin-top: 10px;
+}
+
+/* ... (rest of your existing styles) */
+
+.search-button,
+.map-button,
+.start-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.search-button,
+.map-button {
+  background-color: #4CAF50; /* Green color */
+  color: white;
+}
+
+.search-button:hover,
+.map-button:hover {
+  background-color: #45a049; /* Darker green on hover */
+}
+
+.start-button {
+  background-color: #ff4444; /* Softer red color */
+  color: white; /* Changed to white for better contrast */
+}
+
+.start-button:hover {
+  background-color: #ff6666; /* Lighter red on hover */
+}
+
+.button-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.button-container button {
+  width: 100%;
+  max-width: 200px; /* Adjust this value as needed */
+  margin-top: 10px;
 }
