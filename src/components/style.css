@@ -1,0 +1,472 @@
+@font-face {
+  font-family: 'Fredoka';
+  src: local('Fredoka-Medium'), url('../fonts/Fredoka-Medium.ttf') format('truetype');
+}
+
+body, html {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+  font-family: 'Fredoka', sans-serif;
+  overflow: hidden; /* Prevents scrolling */
+}
+
+.page-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
+  text-align: center;
+  overflow: hidden; /* Prevents any internal scrolling */
+}
+
+.custom-heading {
+  text-align: center;
+}
+
+.custom-body {
+  text-align: center;
+}
+
+.buttons {
+  font-size: 20px;
+  margin-top: 0px;
+  padding: 10px;
+  background-color: #ff5722;
+  color: black;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.buttons.margin-top-20 {
+  margin-top: 20px;
+}
+
+@keyframes spinClockwise {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(360deg);
+  }
+}
+
+.spinning-text {
+  animation: spinClockwise 3s linear infinite;
+  transform-origin: center;
+}
+
+/* Styles for the first page */
+.first-page .custom-heading {
+  font-size: 200px;
+  margin-top: 50px;
+}
+
+.start-button {
+  margin-top: 10px;
+  background-color: #ff4444; /* Softer red color */
+  color: white; /* Changed to white for better contrast */
+}
+
+/* Styles for the restaurant page */
+.restaurant-page {
+  font-size: 100px;
+  margin-top: 50px;
+  margin-bottom: 0;
+}
+
+.restaurant-name {
+  font-size: 100px;
+  margin-top: -30px;
+  margin-bottom: 0px;
+}
+
+.fisheye-container {
+  position: relative;
+  margin-top:-100px;
+  margin-bottom: 0;
+  z-index: 1;
+}
+
+.price-level {
+  font-size: 15px;
+  margin-top: -100px;
+  margin-bottom: 20px;
+}
+
+.estimated-walk {
+  font-size: 15px;
+  margin-top: 0px;
+  margin-bottom: 20px;
+}
+
+.no-more-restaurants .custom-heading {
+  font-size: 100px;
+  margin-top: 50px;
+}
+
+.no-more-restaurants .custom-body {
+  height: 190px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Media Queries for Responsive Design */
+@media screen and (max-width: 768px) {
+  .first-page .custom-heading {
+    font-size: 120px;
+  }
+
+  .restaurant-page .restaurant-name {
+    font-size: 60px;
+  }
+
+  .no-more-restaurants .custom-heading {
+    font-size: 60px;
+  }
+
+  .buttons {
+    font-size: 18px;
+    padding: 8px 16px;
+    margin-bottom: 20px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .first-page .custom-heading {
+    font-size: 80px;
+  }
+
+  .restaurant-page .restaurant-name {
+    font-size: 40px;
+  }
+
+  .no-more-restaurants .custom-heading {
+    font-size: 40px;
+  }
+
+  .buttons {
+    font-size: 16px;
+    padding: 6px 12px;
+  }
+
+  .price-level, .estimated-walk {
+    font-size: 13px;
+  }
+}
+.dots-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px 0;
+  margin-top: -140px;
+  z-index: 2;
+}
+
+.dots-container-upper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px 0;
+  margin-top: 0px;
+  margin-bottom: -130px;
+  z-index: 2;
+}
+
+.dots-row {
+  display: flex;
+  justify-content: space-between; /* Controls spacing between dots */
+  width: 90px; /* Increase or decrease this value to adjust spacing */
+  margin: 5px 0; /* Adjust vertical spacing between rows */
+}
+
+.dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  /* margin: 0 10px; */
+}
+
+.grey-dot {
+  background-color: lightgrey;
+}
+
+.green-dot {
+  background-color: green;
+}
+
+.red-dot {
+  background-color: red;
+}
+
+.invisible-dot {
+  background-color: transparent; /* Or use 'white' if your background is white */
+  visibility: hidden; /* This hides the dot while keeping its space */
+}
+
+.toggle-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 20px 0;
+  margin-top: 20px; /* Default margin */
+  transition: margin-top 0.3s ease;
+}
+
+.map-visible .toggle-container {
+  margin-top: -160px; /* Remove margin when map is visible */
+}
+
+.toggle-label {
+  margin: 0 10px;
+  color: #888;
+  transition: color 0.3s ease;
+}
+
+.toggle-label.active {
+  color: #000;
+  font-weight: bold;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  overflow: hidden;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  z-index: 2;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+.slider-text {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  transition: .4s;
+  z-index: 1;
+}
+
+.slider-text.restaurant {
+  left: 10px;
+}
+
+.slider-text.cafe {
+  right: 10px;
+}
+
+input:checked + .slider .slider-text.restaurant {
+  transform: translateX(-30px) translateY(-50%);
+}
+
+input:checked + .slider .slider-text.cafe {
+  transform: translateX(0) translateY(-50%);
+}
+
+input:not(:checked) + .slider .slider-text.restaurant {
+  transform: translateX(0) translateY(-50%);
+}
+
+input:not(:checked) + .slider .slider-text.cafe {
+  transform: translateX(30px) translateY(-50%);
+}
+
+@import '~leaflet/dist/leaflet.css';
+
+.leaflet-container {
+  height: 400px;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.map-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 1em;
+  cursor: pointer;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+
+.map-button:hover {
+  background-color: #45a049;
+}
+
+.start-button {
+  margin-top: 10px;
+  background-color: #ff4444; /* Softer red color */
+  color: white; /* Changed to white for better contrast */
+}
+
+.start-button:hover {
+  background-color: #ff6666; /* Lighter red on hover */
+}
+
+.search-form {
+  display: flex;
+  margin-bottom: 10px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.search-input {
+  flex-grow: 1;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px 0 0 4px;
+}
+
+.search-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+}
+
+.search-button:hover {
+  background-color: #45a049;
+}
+
+.search-result {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  font-size: 14px;
+  max-width: 400px;
+  word-wrap: break-word;
+}
+
+.map-visible .custom-heading {
+  margin-bottom: 10px;
+}
+
+.map-visible .toggle-container {
+  margin-bottom: 10px;
+}
+
+.map-container {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.map-button {
+  margin-top: 10px;
+}
+
+/* ... (rest of your existing styles) */
+
+.search-button,
+.map-button,
+.start-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.search-button,
+.map-button {
+  background-color: #4CAF50; /* Green color */
+  color: white;
+}
+
+.search-button:hover,
+.map-button:hover {
+  background-color: #45a049; /* Darker green on hover */
+}
+
+.start-button {
+  background-color: #ff4444; /* Softer red color */
+  color: white; /* Changed to white for better contrast */
+}
+
+.start-button:hover {
+  background-color: #ff6666; /* Lighter red on hover */
+}
+
+.button-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.button-container button {
+  width: 100%;
+  max-width: 200px; /* Adjust this value as needed */
+  margin-top: 10px;
+}
