@@ -3,7 +3,6 @@ import { useSwipeable } from 'react-swipeable';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import './style.css';
-import FisheyeImage from './FisheyeImage';
 import axios from 'axios';
 
 // Fix Leaflet's default icon path issues
@@ -34,6 +33,7 @@ function NearbyRestaurants() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState('');
   const mapRef = useRef(null);
+  const [abortController, setAbortController] = useState(null);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -91,19 +91,32 @@ function NearbyRestaurants() {
   };
 
   const fetchNearbyPlaces = useCallback(async (position) => {
-    if (isLoading) return; // Prevent refetching if already loading
+    if (isLoading) {
+      // Cancel the ongoing request
+      if (abortController) {
+        abortController.abort();
+      }
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    // Create a new AbortController for this request
+    const newAbortController = new AbortController();
+    setAbortController(newAbortController);
 
     const { lat, lng } = position;
     setCurrentLocation({ lat, lng });
-    setIsLoading(true);
-    setError(null);
 
     try {
       const endpoint = isRestaurantMode ? 'nearby-restaurants' : 'nearby-cafes';
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/${endpoint}`,
         { latitude: lat, longitude: lng },
-        { withCredentials: true }
+        { 
+          withCredentials: true,
+          signal: newAbortController.signal // Add the abort signal to the request
+        }
       );
       
       const data = response.data;
@@ -112,8 +125,12 @@ function NearbyRestaurants() {
       setMostRepeatedNouns(data.mostRepeatedNouns);
       setRestReady(true);
     } catch (error) {
-      console.error(`Error fetching nearby ${isRestaurantMode ? 'restaurants' : 'cafes'}:`, error);
-      setError(`Failed to fetch nearby ${isRestaurantMode ? 'restaurants' : 'cafes'}. Please try again.`);
+      if (axios.isCancel(error)) {
+        console.log('Request canceled:', error.message);
+      } else {
+        console.error(`Error fetching nearby ${isRestaurantMode ? 'restaurants' : 'cafes'}:`, error);
+        setError(`Failed to fetch nearby ${isRestaurantMode ? 'restaurants' : 'cafes'}. Please try again.`);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -337,16 +354,17 @@ function NearbyRestaurants() {
 
     const place = bestPlaces[currentIndex] || {};
     const travelTime = travelTimes[place.place_id] || 'Calculating...';
-    const svgContent = `
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150" preserveAspectRatio="xMidYMid meet">
-      <rect width="100%" height="100%" fill="white" />
-      <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="orange" font-size="25">
-        ${mostRepeatedNouns[currentIndex] || ''}
-      </text>
-    </svg>`;
+    const noun = mostRepeatedNouns[currentIndex] || '?';
+    const placeId = place.place_id || '';
 
     const priceLevel = place.price_level || 0;
     const estimatedWalkTime = travelTime !== 'Calculating...' ? Math.ceil(parseInt(travelTime.match(/\d+(?=\s*min)/)) / 5) : 0;
+
+    const handleNounClick = () => {
+      if (placeId) {
+        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}&query_place_id=${placeId}`, '_blank');
+      }
+    };
 
     return (
       <div className="centered-container" {...swipeHandlers}>
@@ -355,12 +373,8 @@ function NearbyRestaurants() {
           <div className="dots-placeholder"></div>
           {renderDots(priceLevel, estimatedWalkTime, false)}
           <div className="place-info">
-            <div className="fisheye-container">
-              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}&query_place_id=${place.place_id}`} 
-                 target="_blank" 
-                 rel="noopener noreferrer">
-                <FisheyeImage svgContent={svgContent} />
-              </a>
+            <div className="most-repeated-noun" onClick={handleNounClick} style={{ cursor: 'pointer' }}>
+              {noun || '?'}
             </div>
             {renderDots(priceLevel, estimatedWalkTime, true)}
           </div>
