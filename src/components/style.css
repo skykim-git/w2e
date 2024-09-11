@@ -76,8 +76,31 @@ body, html {
 
 .start-button {
   margin-top: 10px;
-  background-color: #ff4444; /* Softer red color */
-  color: white; /* Changed to white for better contrast */
+  background-color: #ff4444; /* Original softer red color */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 20px;
+  padding: 10px;
+  /* Keep any other original styles you had */
+}
+
+.start-button:hover {
+  background-color: #ff6666; /* Original lighter red on hover */
+}
+
+.start-button:disabled {
+  opacity: 0.6; /* Reduce opacity when disabled */
+  cursor: not-allowed;
+}
+
+/* Ensure the button size remains consistent */
+.start-button,
+.start-button:disabled {
+  /* Keep the original size */
+  width: auto; /* or your specific width if it was set */
+  height: auto; /* or your specific height if it was set */
 }
 
 /* Styles for the restaurant page */
@@ -367,12 +390,31 @@ input:not(:checked) + .slider .slider-text.cafe {
 
 .start-button {
   margin-top: 10px;
-  background-color: #ff4444; /* Softer red color */
-  color: white; /* Changed to white for better contrast */
+  background-color: #ff4444; /* Original softer red color */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 20px;
+  padding: 10px;
+  /* Keep any other original styles you had */
 }
 
 .start-button:hover {
-  background-color: #ff6666; /* Lighter red on hover */
+  background-color: #ff6666; /* Original lighter red on hover */
+}
+
+.start-button:disabled {
+  opacity: 0.6; /* Reduce opacity when disabled */
+  cursor: not-allowed;
+}
+
+/* Ensure the button size remains consistent */
+.start-button,
+.start-button:disabled {
+  /* Keep the original size */
+  width: auto; /* or your specific width if it was set */
+  height: auto; /* or your specific height if it was set */
 }
 
 .search-form {
@@ -457,12 +499,23 @@ input:not(:checked) + .slider .slider-text.cafe {
 }
 
 .start-button {
-  background-color: #ff4444; /* Softer red color */
-  color: white; /* Changed to white for better contrast */
+  background-color: #ff4444; /* Original softer red color */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 10px;
+  /* Keep any other original styles you had */
 }
 
 .start-button:hover {
-  background-color: #ff6666; /* Lighter red on hover */
+  background-color: #ff6666; /* Original lighter red on hover */
+}
+
+.start-button:disabled {
+  opacity: 0.2; /* Reduce opacity when disabled */
+  cursor: not-allowed;
 }
 
 .button-container {

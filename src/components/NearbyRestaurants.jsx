@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-lea
 import 'leaflet/dist/leaflet.css';
 import './style.css';
 import axios from 'axios';
+import RestaurantDetails from './RestaurantDetails';
 
 // Fix Leaflet's default icon path issues
 import L from 'leaflet';
@@ -34,24 +35,28 @@ function NearbyRestaurants() {
   const [searchResult, setSearchResult] = useState('');
   const mapRef = useRef(null);
   const [abortController, setAbortController] = useState(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(true);
 
   useEffect(() => {
     if (navigator.geolocation) {
+      setIsLoadingLocation(true);
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
           const location = { lat: latitude, lng: longitude };
           setCurrentLocation(location);
           setSelectedLocation(location);
+          setIsLoadingLocation(false);
         },
         (error) => {
           console.error("Error getting user's location:", error);
-          // You might want to handle this error, perhaps by showing a message to the user
+          setIsLoadingLocation(false);
         }
       );
     } else {
       console.error("Geolocation is not supported by this browser.");
-      // You might want to handle this case, perhaps by showing a message to the user
+      setIsLoadingLocation(false);
     }
   }, []);
 
@@ -90,7 +95,7 @@ function NearbyRestaurants() {
     }
   };
 
-  const fetchNearbyPlaces = useCallback(async (position) => {
+  const fetchNearbyPlaces = useCallback(async (position, mode) => {
     if (isLoading) {
       // Cancel the ongoing request
       if (abortController) {
@@ -109,32 +114,33 @@ function NearbyRestaurants() {
     setCurrentLocation({ lat, lng });
 
     try {
-      const endpoint = isRestaurantMode ? 'nearby-restaurants' : 'nearby-cafes';
+      const endpoint = mode ? 'nearby-restaurants' : 'nearby-cafes';
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/${endpoint}`,
         { latitude: lat, longitude: lng },
         { 
           withCredentials: true,
-          signal: newAbortController.signal // Add the abort signal to the request
+          signal: newAbortController.signal
         }
       );
       
       const data = response.data;
-      setBestPlaces(isRestaurantMode ? data.restaurants : data.cafes);
+      setBestPlaces(mode ? data.restaurants : data.cafes);
       setTravelTimes(data.travelTimes);
       setMostRepeatedNouns(data.mostRepeatedNouns);
+      console.log(data.mostRepeatedNouns);
       setRestReady(true);
     } catch (error) {
       if (axios.isCancel(error)) {
         console.log('Request canceled:', error.message);
       } else {
-        console.error(`Error fetching nearby ${isRestaurantMode ? 'restaurants' : 'cafes'}:`, error);
-        setError(`Failed to fetch nearby ${isRestaurantMode ? 'restaurants' : 'cafes'}. Please try again.`);
+        console.error(`Error fetching nearby ${mode ? 'restaurants' : 'cafes'}:`, error);
+        setError(`Failed to fetch nearby ${mode ? 'restaurants' : 'cafes'}. Please try again.`);
       }
     } finally {
       setIsLoading(false);
     }
-  }, [isRestaurantMode]);
+  }, []);
 
   const moveToNextPlace = useCallback(() => {
     setCurrentIndex(prevIndex => {
@@ -157,28 +163,37 @@ function NearbyRestaurants() {
   }, [isRestaurantMode]);
 
   const handleButtonClick = useCallback(() => {
-    if (selectedLocation) {
+    if (isLoadingLocation) {
+      // If still loading, do nothing (button should be disabled)
+      return;
+    }
+
+    if (selectedLocation || currentLocation) {
       setIsSpinning(true);
       setTimeout(() => {
         setShowFirstPage(false);
-        fetchNearbyPlaces(selectedLocation);
+        fetchNearbyPlaces(selectedLocation || currentLocation, isRestaurantMode);
       }, 1000);
     } else {
-      alert("Please select a location on the map first.");
+      alert("Unable to determine your location. Please enable location services or select a location on the map.");
     }
-  }, [selectedLocation, fetchNearbyPlaces]);
+  }, [selectedLocation, currentLocation, isLoadingLocation, fetchNearbyPlaces, isRestaurantMode]);
 
   const handleToggle = useCallback(() => {
-    setIsRestaurantMode(prev => !prev);
-    if (!showFirstPage) {
-      setCurrentIndex(0);
-      setRestReady(false);
-      setBestPlaces([]);
-      if (selectedLocation) {
-        fetchNearbyPlaces(selectedLocation);
+    setIsRestaurantMode(prevMode => {
+      const newMode = !prevMode;
+      if (!showFirstPage) {
+        setCurrentIndex(0);
+        setRestReady(false);
+        setBestPlaces([]);
+        if (selectedLocation || currentLocation) {
+          // Use the new mode value directly here
+          fetchNearbyPlaces(selectedLocation || currentLocation, newMode);
+        }
       }
-    }
-  }, [showFirstPage, fetchNearbyPlaces, selectedLocation]);
+      return newMode;
+    });
+  }, [showFirstPage, selectedLocation, currentLocation, fetchNearbyPlaces]);
 
   const handleMapToggle = () => {
     setShowMap(prev => !prev);
@@ -213,8 +228,12 @@ function NearbyRestaurants() {
 
   // Swipe handlers
   const swipeHandlers = useSwipeable({
-    onSwipedLeft: moveToNextPlace,
-    onSwipedRight: handlePrevious,
+    onSwipedLeft: () => {
+      if (!isDetailsOpen) moveToNextPlace();
+    },
+    onSwipedRight: () => {
+      if (!isDetailsOpen) handlePrevious();
+    },
     preventDefaultTouchmoveEvent: true,
     trackMouse: true
   });
@@ -331,7 +350,11 @@ function NearbyRestaurants() {
           <button className="map-button" onClick={handleMapToggle}>
             {showMap ? 'Hide Map' : 'Show Map'}
           </button>
-          <button className="start-button" onClick={handleButtonClick}>
+          <button 
+            onClick={handleButtonClick} 
+            disabled={isLoadingLocation}
+            className="start-button"
+          >
             Start
           </button>
         </div>
@@ -367,19 +390,26 @@ function NearbyRestaurants() {
     };
 
     return (
-      <div className="centered-container" {...swipeHandlers}>
-        {renderToggleButton()}
-        <div className="dots-wrapper">
-          <div className="dots-placeholder"></div>
-          {renderDots(priceLevel, estimatedWalkTime, false)}
-          <div className="place-info">
-            <div className="most-repeated-noun" onClick={handleNounClick} style={{ cursor: 'pointer' }}>
-              {noun || '?'}
+      <div 
+        className="centered-container" 
+        style={{ position: 'relative', height: '100vh', overflow: 'hidden' }}
+        {...swipeHandlers}
+      >
+        <div>
+          {renderToggleButton()}
+          <div className="dots-wrapper">
+            <div className="dots-placeholder"></div>
+            {renderDots(priceLevel, estimatedWalkTime, false)}
+            <div className="place-info">
+              <div className="most-repeated-noun" onClick={handleNounClick} style={{ cursor: 'pointer' }}>
+                {noun || '?'}
+              </div>
+              {renderDots(priceLevel, estimatedWalkTime, true)}
             </div>
-            {renderDots(priceLevel, estimatedWalkTime, true)}
+            <div className="dots-placeholder"></div>
           </div>
-          <div className="dots-placeholder"></div>
         </div>
+        <RestaurantDetails isOpen={isDetailsOpen} setIsOpen={setIsDetailsOpen} restaurant={place} />
       </div>
     );
   };
