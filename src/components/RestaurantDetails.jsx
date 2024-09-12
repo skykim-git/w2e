@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSpring, animated } from 'react-spring';
 import { useDrag } from '@use-gesture/react';
 
@@ -17,6 +17,23 @@ const RestaurantDetails = ({ isOpen, setIsOpen, restaurant }) => {
     },
     { from: () => [0, -y.get()], filterTaps: true, bounds: { top: -(window.innerHeight - 60), bottom: 0 }, rubberband: true }
   );
+
+  useEffect(() => {
+    const preventDefault = (e) => e.preventDefault();
+
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      document.addEventListener('touchmove', preventDefault, { passive: false });
+    } else {
+      document.body.style.overflow = '';
+      document.removeEventListener('touchmove', preventDefault);
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+      document.removeEventListener('touchmove', preventDefault);
+    };
+  }, [isOpen]);
 
   const renderStars = (rating) => {
     const stars = [];
@@ -45,6 +62,8 @@ const RestaurantDetails = ({ isOpen, setIsOpen, restaurant }) => {
         borderTopRightRadius: '20px',
         zIndex: 1000,
         touchAction: 'none',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
       <div 
@@ -61,7 +80,7 @@ const RestaurantDetails = ({ isOpen, setIsOpen, restaurant }) => {
         style={{
           padding: '20px',
           height: y.to(y => `${y}px`),
-          overflow: 'auto',
+          overflow: isOpen ? 'auto' : 'hidden',
         }}
       >
         <h2 style={{ textAlign: 'center', marginBottom: '10px' }}>{restaurant?.name || 'Restaurant Name'}</h2>
