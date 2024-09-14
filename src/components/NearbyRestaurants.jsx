@@ -4,7 +4,6 @@ import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-lea
 import 'leaflet/dist/leaflet.css';
 import './style.css';
 import axios from 'axios';
-import RestaurantDetails from './RestaurantDetails';
 
 // Fix Leaflet's default icon path issues
 import L from 'leaflet';
@@ -35,7 +34,6 @@ function NearbyRestaurants() {
   const [searchResult, setSearchResult] = useState('');
   const mapRef = useRef(null);
   const [abortController, setAbortController] = useState(null);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
 
   useEffect(() => {
@@ -128,7 +126,6 @@ function NearbyRestaurants() {
       setBestPlaces(mode ? data.restaurants : data.cafes);
       setTravelTimes(data.travelTimes);
       setMostRepeatedNouns(data.mostRepeatedNouns);
-      console.log(data.mostRepeatedNouns);
       setRestReady(true);
     } catch (error) {
       if (axios.isCancel(error)) {
@@ -229,10 +226,10 @@ function NearbyRestaurants() {
   // Swipe handlers
   const swipeHandlers = useSwipeable({
     onSwipedLeft: () => {
-      if (!isDetailsOpen) moveToNextPlace();
+      moveToNextPlace();
     },
     onSwipedRight: () => {
-      if (!isDetailsOpen) handlePrevious();
+      handlePrevious();
     },
     preventDefaultTouchmoveEvent: true,
     trackMouse: true
@@ -379,6 +376,7 @@ function NearbyRestaurants() {
     const travelTime = travelTimes[place.place_id] || 'Calculating...';
     const noun = mostRepeatedNouns[currentIndex] || '?';
     const placeId = place.place_id || '';
+    const placePhotos = place.photoUrls || [];
 
     const priceLevel = place.price_level || 0;
     const estimatedWalkTime = travelTime !== 'Calculating...' ? Math.ceil(parseInt(travelTime.match(/\d+(?=\s*min)/)) / 5) : 0;
@@ -392,11 +390,40 @@ function NearbyRestaurants() {
     return (
       <div 
         className="centered-container" 
-        style={{ position: 'relative', height: '100vh', overflow: 'hidden' }}
+        style={{ position: 'relative', height: '70vh', width: '100%', overflow: 'hidden', padding: '0px' }}
         {...swipeHandlers}
       >
-        <div>
-          {renderToggleButton()}
+        <div className="photo-container" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+          {placePhotos.slice(0, 4).map((photo, index) => (
+            <div
+              key={index}
+              className={`corner-photo corner-photo-${index}`}
+              style={{
+                position: 'absolute',
+                width: '30%',
+                height: '33%',
+                overflow: 'hidden',
+                ...(index === 0 && { top: 0, left: 0 }),
+                ...(index === 1 && { top: 0, right: 0 }),
+                ...(index === 2 && { bottom: 0, left: 0 }),
+                ...(index === 3 && { bottom: 0, right: 0 }),
+              }}
+            >
+              <img 
+                src={photo} 
+                alt={`Corner photo ${index + 1}`}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  objectPosition: 'center',
+                }}
+              />
+            </div>
+          ))}
+        </div>
+        <div className="content" style={{ position: 'relative', zIndex: 20, height: '100%' }}>
+          {/* {renderToggleButton()} */}
           <div className="dots-wrapper">
             <div className="dots-placeholder"></div>
             {renderDots(priceLevel, estimatedWalkTime, false)}
@@ -409,7 +436,6 @@ function NearbyRestaurants() {
             <div className="dots-placeholder"></div>
           </div>
         </div>
-        <RestaurantDetails isOpen={isDetailsOpen} setIsOpen={setIsDetailsOpen} restaurant={place} />
       </div>
     );
   };
