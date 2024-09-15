@@ -235,9 +235,10 @@ function NearbyRestaurants() {
     trackMouse: true
   });
 
-  const renderDots = (priceLevel = 0, estimatedWalkTime = 0, isLowerComponent = true) => {
+  const renderDots = (rating = 0, priceLevel = 0, estimatedWalkTime = 0, isLowerComponent = true) => {
     const greenDots = Math.min(3, Math.max(0, priceLevel));  // Cap at 3, ensure non-negative
     const redDots = Math.min(3, estimatedWalkTime);  // Cap at 3, safely parsed
+    const yellowDots = Math.min(3, rating-2);  // Cap at 3, safely parsed
   
     if (isLowerComponent) {
       // Lower component behavior remains the same
@@ -246,14 +247,14 @@ function NearbyRestaurants() {
           {[3, 2, 1].map((level) => (
             <div className="dots-row" key={`row-${level}`}>
               <div className={`dot ${greenDots >= level ? 'green-dot' : 'invisible-dot'}`}></div>
-              <div className="dot grey-dot"></div>
+              <div className={`dot ${yellowDots >= level ? 'yellow-dot' : 'invisible-dot'}`}></div>
               <div className={`dot ${redDots >= level ? 'red-dot' : 'invisible-dot'}`}></div>
             </div>
           ))}
           {[...Array(3)].map((_, index) => (
             <div className="dots-row" key={`row-empty-${index}`}>
               <div className="dot"></div>
-              <div className="dot grey-dot"></div>
+              <div className={`dot ${index === 2 ? 'grey-dot' : 'yellow-dot'}`}></div>
               <div className="dot"></div>
             </div>
           ))}
@@ -376,6 +377,7 @@ function NearbyRestaurants() {
     const travelTime = travelTimes[place.place_id] || 'Calculating...';
     const noun = mostRepeatedNouns[currentIndex] || '?';
     const placeId = place.place_id || '';
+    const rating = place.rating || 0;
     const placePhotos = place.photoUrls || [];
 
     const priceLevel = place.price_level || 0;
@@ -390,7 +392,7 @@ function NearbyRestaurants() {
     return (
       <div 
         className="centered-container" 
-        style={{ position: 'relative', height: '70vh', width: '100%', overflow: 'hidden', padding: '0px' }}
+        style={{ position: 'relative', height: '75vh', width: '100vw', overflow: 'hidden', padding: '0px' }}
         {...swipeHandlers}
       >
         <div className="photo-container" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
@@ -422,16 +424,18 @@ function NearbyRestaurants() {
             </div>
           ))}
         </div>
-        <div className="content" style={{ position: 'relative', zIndex: 20, height: '100%' }}>
-          {/* {renderToggleButton()} */}
+        <div className="content" style={{ position: 'relative', height: '100%', width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
           <div className="dots-wrapper">
             <div className="dots-placeholder"></div>
-            {renderDots(priceLevel, estimatedWalkTime, false)}
+            {renderDots(rating, priceLevel, estimatedWalkTime, false)}
             <div className="place-info">
+              <div className="most-repeated-noun" style={{ fontSize: '18px', marginBottom: '-40px' }}>
+                {place.name || 'Unknown Place'}
+              </div>
               <div className="most-repeated-noun" onClick={handleNounClick} style={{ cursor: 'pointer' }}>
                 {noun || '?'}
               </div>
-              {renderDots(priceLevel, estimatedWalkTime, true)}
+              {renderDots(rating, priceLevel, estimatedWalkTime, true)}
             </div>
             <div className="dots-placeholder"></div>
           </div>
