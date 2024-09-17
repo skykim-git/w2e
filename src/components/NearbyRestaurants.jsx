@@ -389,6 +389,12 @@ function NearbyRestaurants() {
       }
     };
 
+    const calculateFontSize = (text) => {
+      if (!text || text.length <= 4) return '100px';
+      const size = 100 - (text.length - 4) * 20;
+      return `${size}px`;
+    };
+
     return (
       <div 
         className="centered-container" 
@@ -432,7 +438,11 @@ function NearbyRestaurants() {
               <div className="most-repeated-noun" style={{ fontSize: '18px', marginBottom: '-40px' }}>
                 {place.name || 'Unknown Place'}
               </div>
-              <div className="most-repeated-noun" onClick={handleNounClick} style={{ cursor: 'pointer' }}>
+              <div 
+                className="most-repeated-noun" 
+                onClick={handleNounClick} 
+                style={{ fontSize: calculateFontSize(noun) }}
+              >
                 {noun || '?'}
               </div>
               {renderDots(rating, priceLevel, estimatedWalkTime, true)}
